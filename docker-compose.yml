@@ -1,40 +1,55 @@
-version: '3.8'
+version: "3.8"
 services:
+    postgres:
+        image: pgvector/pgvector:pg16
+        container_name: postgres-transport
+        environment:
+            POSTGRES_DB: transport_db
+            POSTGRES_USER: transport_senegal
+            POSTGRES_PASSWORD: senegal2026
+        ports:
+            - "5433:5432"
+        restart: unless-stopped
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
 
-  postgres:
-    image: pgvector/pgvector:pg16
-    container_name: postgres-transport      # ← nom fixe
-    environment:
-      POSTGRES_DB: transport_db
-      POSTGRES_USER: transport_senegal
-      POSTGRES_PASSWORD: senegal2026
-    ports:
-      - "5433:5432"
-    restart: unless-stopped                 # ← redémarre automatiquement
+    redis:
+        image: redis:7-alpine
+        container_name: redis-transport
+        ports:
+            - "6379:6379"
+        restart: unless-stopped
+        command: redis-server --loglevel warning --appendonly yes
+        volumes:
+            - redis-data:/data
 
-  redis:
-    image: redis:7-alpine
-    container_name: redis-transport         # ← nom fixe
-    ports:
-      - "6379:6379"
-    restart: unless-stopped                 # ← IMPORTANT, manquait avant
-    command: redis-server --loglevel warning
+    zookeeper:
+        image: confluentinc/cp-zookeeper:7.6.0
+        container_name: zookeeper-transport
+        environment:
+            ZOOKEEPER_CLIENT_PORT: 2181
+        restart: unless-stopped
+        volumes:
+            - zookeeper-data:/var/lib/zookeeper/data
+            - zookeeper-log:/var/lib/zookeeper/log
 
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.6.0
-    container_name: zookeeper-transport
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-    restart: unless-stopped
+    kafka:
+        image: confluentinc/cp-kafka:7.6.0
+        container_name: kafka-transport
+        depends_on: [zookeeper]
+        ports:
+            - "9092:9092"
+        environment:
+            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        restart: unless-stopped
+        volumes:
+            - kafka-data:/var/lib/kafka/data
 
-  kafka:
-    image: confluentinc/cp-kafka:7.6.0
-    container_name: kafka-transport
-    depends_on: [zookeeper]
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    restart: unless-stopped
+volumes:
+    postgres-data:
+    redis-data:
+    zookeeper-data:
+    zookeeper-log:
+    kafka-data:

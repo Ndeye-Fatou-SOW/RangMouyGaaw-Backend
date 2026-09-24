@@ -1,5 +1,13 @@
 HELP.md
 target/
+
+### Secrets — ne JAMAIS versionner ###
+# Contient les clés PayTech, Gemini et le secret JWT.
+# Le modèle sans valeurs sensibles est .env.example, lui versionné.
+.env
+.env.local
+*.pem
+*.p12
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

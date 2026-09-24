@@ -27,6 +27,8 @@ public class IncidentJpaEntity {
 
     @Column(length = 2000)
     private String description;
+    @Column(name = "signale_par")
+    private String signalePar;
 
     private Double latitude;
 

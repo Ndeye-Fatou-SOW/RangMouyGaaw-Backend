@@ -20,4 +20,5 @@ public class Incident {
     private IncidentStatut statut;
     private LocalDateTime dateSignalement;
     private LocalDateTime dateResolution;
+    private String signalePar; // username de la personne qui a signalé
 }
